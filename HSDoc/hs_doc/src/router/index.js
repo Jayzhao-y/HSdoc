@@ -30,6 +30,12 @@ const routes = [
         import(/* webpackChunkName: "about" */ "../views/Taizhang3View.vue"),
       },
       {
+        name: "Danyuan",
+        path: "/home/Danyuan",
+        component: () =>
+        import(/* webpackChunkName: "about" */ "../views/DanyuanView.vue"),
+      },
+      {
         name: "Fenbu",
         path: "/home/Fenbu",
         component: () =>

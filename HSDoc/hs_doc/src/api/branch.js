@@ -13,4 +13,7 @@ export default {
     getBranchType: (params) => {
         return Post('/branch/getBranchType', params)
     },
+    getSatistic: (params) => {
+        return Post('/statistic/getList', params)
+    },
 }

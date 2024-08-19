@@ -186,6 +186,46 @@
         </div>
       </div>
     </el-dialog>
+    <!-- checkView -->
+    <el-dialog :show-close="false" :visible.sync="dialogCheckVisible" width="0%" :modal="false">
+      <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white w-1/2 h-1/2 p-6 rounded-lg shadow-lg relative">
+          <div class="tableContent_check">
+            <button
+            class="absolute top-2 right-2 text-zinc-500 hover:text-zinc-700"
+            aria-label="Close"
+            @click="dialogCheckVisible = false"
+          >
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+            <p class="text-card-foreground text-lg"></p>
+            <el-table
+              :data="tableData_check"
+              border
+              style="width: 100%"
+              @selection-change="handleSelectionChange"
+            >
+              <el-table-column
+                v-for="item in TZ_title_List_inner"
+                :key="item.id"
+                align="center"
+                :prop="item.prop"
+                :label="item.lable"
+                fit
+              >
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+      </div>
+    </el-dialog>
     <!-- header -->
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-zinc-400 text-2xl font-semibold">{{ VIEW_TITLE }}</h2>
@@ -221,7 +261,7 @@
       <el-table
         :data="tableData"
         border
-        style="width: 100%"
+        style="width: 100%;"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="70" align="center"> </el-table-column>
@@ -238,7 +278,7 @@
         <el-table-column fixed="right" label="操作" width="100">
           <template slot-scope="scope">
             <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-            <el-button type="text" size="small">编辑</el-button>
+            <!-- <el-button type="text" size="small">编辑</el-button> -->
           </template>
         </el-table-column>
       </el-table>
@@ -257,6 +297,7 @@ export default {
       //add
       unitProjectOptions: [],
       dialogVisible: false,
+      dialogCheckVisible: false,
       formData: {
         unitProject: '',
         fenbuProName: [],
@@ -291,7 +332,34 @@ export default {
           lable: '分部工程起始桩号'
         }
       ],
-      tableData: []
+      TZ_title_List_inner: [
+        {
+          prop: 'module_name',
+          lable: '单元工程种类'
+        },
+        {
+          prop: 'quantities_total',
+          lable: '工程量'
+        },
+        {
+          prop: 'module_num',
+          lable: '单元工程个数'
+        },
+        {
+          prop: 'module_qualified',
+          lable: '合格个数'
+        },
+        {
+          prop: 'module_excellent',
+          lable: '优良个数'
+        },
+        // {
+        //   prop: 'branch_concat',
+        //   lable: '备注'
+        // }
+      ],
+      tableData: [],
+      tableData_check: [],
     }
   },
   methods: {
@@ -310,15 +378,33 @@ export default {
       }
     },
     handleClick(row) {
-      console.log('row::::', row)
+      console.log(row);
+      
+      this.dialogCheckVisible = true;
+      API.getSatistic({
+        branch_id:row.branch_id,
+        unitengineer_unit_id:row.unit_id,
+      }).then((res)=>{
+        this.tableData_check = [];
+        let arr = res.data[3];
+        arr.map(item =>{
+          let keys = Object.keys(item)
+          let values = Object.values(item)
+          let tempKV ={};
+          for(var idx in keys){
+            tempKV[`${keys[idx]}`] = values[idx]
+          }
+             this.tableData_check.push(tempKV)
+        })
+      })
     },
     deleteTableList() {
       
-      console.log(this.multipleSelection);
-      
-      this.$confirm('确认删除？')
+      this.$confirm('确认删除？此操作将忽略存在单元工程实例的分部工程。')
         .then((_) => {
           API.deleteBranch(this.multipleSelection).then((res)=>{
+            console.log(res.data.affectedRows);
+            this.$message(`此次成功删除 ${res.data.affectedRows} 条`);
             this.getBranch();
           })
           done()
@@ -435,10 +521,11 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = []
       val.forEach((element) => {
-        return this.multipleSelection.push(element.id)
+        return this.multipleSelection.push(element.branch_id)
       })
     }
   },
+
   directives: {
     focusNext: {
       bind(el, binding) {
@@ -458,8 +545,12 @@ export default {
 }
 </script>
 <style>
+.tableContent_check{
+  height: 900px;
+  overflow-y: scroll;
+}
 .tableContent{
-  height: 75%;
+  height: 900px;
   overflow-y: scroll;
 }
 </style>

@@ -37,16 +37,18 @@
                 </el-option>
               </el-select>
             </div>
+        
             <div class="flex flex-col">
-              <label for="starCode" class="text-sm font-medium">选择单元工程</label>
+              <label for="starCode" class="text-sm font-medium">单元划分频率</label>
               <el-select
                 :class="styleSheet.input"
-                v-model="formData.moduleType"
+                v-model="formData.frequency"
                 clearable
                 :placeholder="placeholder"
+                @change="handleProcessArr"
               >
                 <el-option
-                  v-for="item in moduleTypeOptions"
+                  v-for="item in frequencyOptions"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"
@@ -55,15 +57,15 @@
               </el-select>
             </div>
             <div class="flex flex-col">
-              <label for="starCode" class="text-sm font-medium">单元划分频率</label>
+              <label for="starCode" class="text-sm font-medium">选择单元工程</label>
               <el-select
                 :class="styleSheet.input"
-                v-model="formData.frequency"
+                v-model="formData.moduleType[0]"
                 clearable
                 :placeholder="placeholder"
               >
                 <el-option
-                  v-for="item in frequencyOptions"
+                  v-for="item in tempProArrs"
                   :key="item.value"
                   :label="item.label"
                   :value="item.value"
@@ -121,7 +123,7 @@
     <!-- popUp multiadd  branchProjectOptions frequencyOptions submitSheet-->
     <el-dialog :show-close="false" :visible.sync="dialogVisible_multiadd" width="0%" :modal="false">
       <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative h-1/2">
+        <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-lg relative h-100">
           <button
             class="absolute top-2 right-2 text-zinc-500 hover:text-zinc-700"
             aria-label="Close"
@@ -139,7 +141,7 @@
           <h2 class="text-2xl font-bold text-center mb-4">新增单位工程</h2>
           <div class="space-y-4">
             <div class="flex flex-col">
-              <label for="project" class="block text-card-foreground">单位工程:</label>
+              <label for="project" class="block text-card-foreground">分部工程:</label>
               <el-select
                 class=""
                 v-model="formData.branchProject"
@@ -156,12 +158,13 @@
               </el-select>
             </div>
             <div class="flex flex-col">
-              <label for="starCode" class="block text-card-foreground">单元划分频率</label>
+              <label for="starCode" class="text-sm font-medium">单元划分频率</label>
               <el-select
+                :class="styleSheet.input"
                 v-model="formData.frequency"
                 clearable
-                multiple
                 :placeholder="placeholder"
+                @change="handleProcessArr"
               >
                 <el-option
                   v-for="item in frequencyOptions"
@@ -171,6 +174,10 @@
                 >
                 </el-option>
               </el-select>
+            </div>
+            <div class="flex flex-col">
+              <label for="starCode" class="text-sm font-medium">单元工程名称</label>
+              <checkBox :processArrs="tempProArrs" @child-event ="handleChildEvent"></checkBox>
             </div>
             <div class="flex flex-col h-52">
               <el-table :data="codeTableData" style="width: 100%" max-height="200">
@@ -252,6 +259,7 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
         @row-click="handleClick"
+        class=“el-table–scrollable-y”
       >
         <el-table-column type="selection" width="70" align="center"> </el-table-column>
         <el-table-column type="index" width="90" align="center" label="序号"> </el-table-column>
@@ -285,8 +293,13 @@ import styleSheet from '../styles/styleSheet'
 import API  from '../api/module'
 import API_getModuleType  from '../api/moduleType'
 import API_branch  from '../api/branch'
+import checkBox from '../components/checkBox.vue'
+import { v4 as uuidv4 } from 'uuid'
 let timers = null
 export default {
+  components:{
+    checkBox
+  },
   data() {
     return {
       //add
@@ -294,7 +307,7 @@ export default {
       dialogVisible: false,
       formData: {
         branchProject: '',
-        moduleType: '',
+        moduleType: [''],
         frequency: '',
         startCode: [],
         endCode: [],
@@ -318,7 +331,7 @@ export default {
       },
       {
         prop: 'unit_concat',
-        lable: '单位工程起始桩号'
+        lable: '单位起始桩号'
       },
       {
         prop: 'branchtype_name',
@@ -326,7 +339,7 @@ export default {
       },
       {
         prop: 'branch_concat',
-        lable: '分部工程起始桩号'
+        lable: '分部起始桩号'
       },
       {
         prop: 'module_name',
@@ -367,7 +380,10 @@ export default {
       ],
       tableData: [],
       currentID:null,
-      disableList:['unit_name','unit_concat','branchtype_name','branch_concat','module_name','module_concat']
+      currentRow:null,
+      disableList:['module_process','unit_name','unit_concat','branchtype_name','branch_concat','module_name','module_concat'],
+      processArrs:[],
+      tempProArrs:[]
     }
   },
   computed:{
@@ -376,7 +392,10 @@ export default {
     },
   },
   methods: {
-    
+    handleChildEvent(payload) {
+      this.formData.moduleType = payload
+
+    },
     searchBtn() {
       clearTimeout(timers)
       timers = setTimeout(() => {
@@ -394,6 +413,7 @@ export default {
     handleClick(row) {
       let tempObj = row;
       this.currentID = row.module_id
+      this.currentRow = row
     },
     deleteTableList() {
       this.$confirm('确认删除？')
@@ -412,10 +432,11 @@ export default {
         for(var key of form){
             arr.push({
             label: key.moduletype_name,
-            value: key.moduletype_id
+            value: key.moduletype_id,
+            segment: key.modulesegment_id
           })
         }
-        this.moduleTypeOptions = arr
+         this.processArrs  = this.moduleTypeOptions = arr
       }).catch((err)=>{
         console.log(err);
         
@@ -424,7 +445,7 @@ export default {
     getModule(){
       API.getModule().then((res)=>{
         this.tableData = [];
-        let arr = res.data[1];
+        let arr = res.data[res.data.length -1];
         arr.map(item =>{
           let keys = Object.keys(item)
           let values = Object.values(item)
@@ -434,7 +455,6 @@ export default {
           }
              this.tableData.push(tempKV)
         })
-        console.log("---page reflash---");
       }).catch((err)=>{
         console.log(err);
         
@@ -443,9 +463,10 @@ export default {
     updateModule(row){
       let params = [row,row.module_id]
       API.updateModule(params).then((res)=>{
+        this.currentID = null;
         this.getModule();
       }).then(()=>{
-        this.currentID = null
+       
       })
     },
     getBranch(){
@@ -483,7 +504,7 @@ export default {
        let tmpArr = [];
           tmpArr.push({
             branchengineer_branch_id:form.branchProject,
-            module_name:form.moduleType,
+            module_name:form.moduleType[0],
             modulesegment_segment_id:form.frequency,
             module_start:form.startCode[0],
             module_end:form.endCode[0],
@@ -498,11 +519,10 @@ export default {
               for(let item of arr){
               tmpArr[0].module_process = item;
               API.addModule(tmpArr).then(res=>{
-                  console.log(res);
                 }).then(()=>{
                   this.formData={
                   branchProject: '',
-                  moduleType: '',
+                  moduleType: [''],
                   frequency: '',
                   startCode: [],
                   endCode: [],
@@ -522,13 +542,84 @@ export default {
       
     },
     submitSheet() {
+      let form = this.formData
+       let tmpArr = [];
+       let arr=[];
+      for(var moduleName of form.moduleType){
+        for(var idx in form.endCode){
+          tmpArr.push({
+            branchengineer_branch_id:form.branchProject,
+            module_name:moduleName,
+            modulesegment_segment_id:form.frequency,
+            module_start:form.startCode[idx],
+            module_end:form.endCode[idx],
+            construct_code:form.constructCode,
+            module_process:0,
+            process_relation_id:''
+          })
+        }
+      }
 
+      for(var inner of tmpArr){
+        let item = inner
+      API.getProcessNum({process_id:item.module_name}).then((res)=>{
+            if(res.data.code != -1){
+              let str = res.data[0].ids
+               arr = str?str.split(',').map(Number):[];
+            }
+            const uuid_instance = uuidv4()
+            for(let index in arr){
+              item.module_process = arr[index];
+              item.process_relation_id = uuid_instance;
+              
+              API.addModule([item]).then(res=>{
+                }).then(()=>{
+                  this.formData={
+                  branchProject: '',
+                  moduleType: [0],
+                  frequency: '',
+                  startCode: [],
+                  endCode: [],
+                  constructCode:'',
+                  module_process:0,
+                  process_relation_id:''
+                }
+                this.codeTableData = [{}]
+                this.multipleSelection = []
+                this.tempProArrs =[]
+                this.getModule();
+                }).catch((err)=>{
+                  console.log(err);
+                  
+                })
+              
+            }
+          })
+        } 
     },
     handleSelectionChange(val) {
       this.multipleSelection = []
+      
       val.forEach((element) => {
-        return this.multipleSelection.push(element.id)
+        return this.multipleSelection.push(element.module_id)
       })
+    },
+    handleProcessArr(){
+     
+      let currentFrequncy = this.formData.frequency;
+      this.tempProArrs =this.processArrs
+      this.tempProArrs = this.tempProArrs.filter(item=>{
+          return item.segment ==currentFrequncy
+      })
+      
+      
+    }
+  },
+  watch:{
+    currentRow(newV,oldV){
+      if(oldV!=null){
+        // this.updateModule(oldV)
+      }
     }
   },
   directives: {
@@ -546,6 +637,9 @@ export default {
     this.getBranch();
     this.getFreq();
     this.getModuleType();
+   
+
+    
     // this.getUnit();
 
   }
@@ -553,7 +647,8 @@ export default {
 </script>
 <style>
 .tableContent{
-  height: 75%;
+  height: 900px;
   overflow-y: scroll;
 }
+
 </style>

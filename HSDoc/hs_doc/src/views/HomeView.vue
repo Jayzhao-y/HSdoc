@@ -54,7 +54,18 @@
               src="https://placehold.co/24x24?text=📊"
               class="mr-3"
             />
-            <span class="text-primary-foreground" @click="getRouterList(4)">分布单元管理</span>
+            <span class="text-primary-foreground" @click="getRouterList(4)">单元管理</span>
+          </li>
+          <li
+            class="flex items-center py-3 px-5 rounded-lg hover:bg-primary/30 cursor-pointer transition-all duration-300"
+          >
+            <img
+              aria-hidden="true"
+              alt="dashboard-icon"
+              src="https://placehold.co/24x24?text=📊"
+              class="mr-3"
+            />
+            <span class="text-primary-foreground" @click="getRouterList(5)">分布管理</span>
           </li>
         </ul>
       </div>
@@ -95,13 +106,13 @@ export default {
         this.$router.push({
           path: '/home/Taizhang3'
         })
-      } else if (num == 4 && this.routerProtect('/home/Fenbu')) {
+      } else if (num == 4 && this.routerProtect('/home/Danyuan')) {
+        this.$router.push({
+          path: '/home/Danyuan'
+        })
+      } else if (num == 5 && this.routerProtect('/home/Fenbu')) {
         this.$router.push({
           path: '/home/Fenbu'
-        })
-      } else if (num == 5 && this.routerProtect('/home/QRcode')) {
-        this.$router.push({
-          path: '/home/QRcode'
         })
       }
     }

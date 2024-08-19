@@ -18,71 +18,23 @@
               ></path>
             </svg>
           </button>
-          <h2 class="text-2xl font-bold text-center mb-4">新增单位工程</h2>
+          <h2 class="text-2xl font-bold text-center mb-4">新增分部工程</h2>
           <div class="space-y-4">
             <div class="flex flex-col">
-              <label for="project" class="block text-card-foreground">单位工程:</label>
-              <el-select
-                class=""
-                v-model="formData.unitProject"
-                clearable
-                :placeholder="placeholder"
-              >
-                <el-option
-                  v-for="item in unitProjectOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                </el-option>
-              </el-select>
-            </div>
-            <div class="flex flex-col">
-              <label for="starCode" class="text-sm font-medium">分部工程名称</label>
-              <el-select
-                :class="styleSheet.input"
-                v-model="formData.fenbuProName"
-                clearable
-                :placeholder="placeholder"
-              >
-                <el-option
-                  v-for="item in fenbuProjectOptions"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                </el-option>
-              </el-select>
-            </div>
-            <div class="flex flex-col">
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <label for="start-number" class="block text-card-foreground">起点桩号:</label>
-                  <input
+              <label for="project" class="block text-card-foreground">分部名称</label>
+              <input
                     type="text"
                     id="start-number"
                     name="start-number"
                     :placeholder="placeholder"
                     :class="styleSheet.inputMini"
-                    v-model="formData.startCode[0]"
+                    v-model="formData.branchtype_name"
                   />
-                </div>
-                <div>
-                  <label for="end-number" class="block text-card-foreground">终点桩号:</label>
-                  <input
-                    type="text"
-                    id="end-number"
-                    name="end-number"
-                    :placeholder="placeholder"
-                    :class="styleSheet.inputMini"
-                    v-model="formData.endCode[0]"
-                  />
-                </div>
-              </div>
+              
             </div>
             <button
               class="bg-primary text-primary-foreground w-full py-2 rounded-md hover:bg-primary/80"
-              @click="addBranch"
+              @click="addBranchType"
             >
               Submit
             </button>
@@ -95,6 +47,12 @@
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-zinc-400 text-2xl font-semibold">{{ VIEW_TITLE }}</h2>
       <div class="flex gap-5">
+        <button
+          @click="dialogVisible = true"
+          class="bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-6 rounded-lg transition-all duration-300 shadow-lg"
+        >
+          新增
+        </button>
         <button
           @click="deleteTableList"
           class="bg-secondary text-secondary-foreground hover:bg-secondary/80 py-2 px-6 rounded-lg transition-all duration-300 shadow-lg"
@@ -125,7 +83,7 @@
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="100">
           <template slot-scope="scope">
-            <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
+            <!-- <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button> -->
             <el-button type="text" size="small">编辑</el-button>
           </template>
         </el-table-column>
@@ -136,8 +94,7 @@
 <script>
 import contenHelper from '../utils/contentHelper.js'
 import styleSheet from '../styles/styleSheet'
-import API  from '../api/moduleType'
-import API_unit  from '../api/unit'
+import API  from '../api/branchType'
 let timers = null
 export default {
   data() {
@@ -146,10 +103,8 @@ export default {
       unitProjectOptions: [],
       dialogVisible: false,
       formData: {
-        unitProject: '',
-        fenbuProName: [],
-        startCode: [],
-        endCode: []
+        branchtype_name: ''
+
       },
       //multi
       multipleSelection: [],
@@ -163,54 +118,29 @@ export default {
       VIEW_TITLE: contenHelper.VIEW_TITLE,
       TZ_title_List: [
         {
-          prop: 'moduletype_name',
-          lable: '单元名称'
-        },
-        {
-          prop: 'segment_content',
-          lable: '单元划分频率'
-        },
-        {
-          prop: 'process_names',
-          lable: '工序工程'
-        },
+          prop: 'branchtype_name',
+          lable: '分部工程名称'
+        }
       ],
       tableData: []
     }
   },
   methods: {
-    searchBtn() {
-      clearTimeout(timers)
-      timers = setTimeout(() => {
-        this.autoPush(this.formData.endCode) //需要防抖的函数
-      }, 200)
-    },
-    autoPush(newv) {
-      if (newv.length != 0) {
-        if (this.dialogVisible_multiadd) {
-          this.formData.startCode.push(newv[newv.length - 1])
-        }
-        this.codeTableData.push({})
-      }
-    },
     handleClick(row) {
       console.log('row::::', row)
     },
     deleteTableList() {
-      
-      console.log(this.multipleSelection);
-      
-      this.$confirm('确认删除？')
+      this.$confirm('确认删除？此操作将忽略存在分部工程实例的分部类型。')
         .then((_) => {
-          API.deleteBranch(this.multipleSelection).then((res)=>{
-            this.getModuleType();
+          API.deleteBranchType(this.multipleSelection).then((res)=>{
+            this.getBranchType();
           })
           done()
         })
         .catch((_) => {})
     },
-    getModuleType(){
-      API.getModuleType().then((res)=>{
+    getBranchType(){
+      API.getBranchType().then((res)=>{
         this.tableData = [];
         let arr = res.data;
         arr.map(item =>{
@@ -228,89 +158,20 @@ export default {
         
       })
     },
-    getUnit(){
-      this.unitProjectOptions = []
-      API_unit.getUnit().then(res=>{
-        let arr=[];
-        let form = res.data;
-        for(var key of form){
-            arr.push({
-            label: key.unit_name,
-            value: key.unit_id
-          })
-        }
-        this.unitProjectOptions = arr
-      }).catch((err)=>{
-        console.log(err);
-        
-      })
-    },
-    getModuleTypeType(){
-      this.fenbuProjectOptions = []
-      API.getModuleTypeType().then((res)=>{
-        let arr = res.data;
-        for(var key of arr){
-          this.fenbuProjectOptions.push({
-          value:key.branchtype_id,
-          label:key.branchtype_name
-        })
-        }
-   
-      }).catch((err)=>{
-        console.log(err);
-        
-      })
-    },
-    addBranch() {
-       console.log(this.formData);
+    addBranchType() {
+
        let form = this.formData
-       let tmpArr = [];
-          tmpArr.push({
-            branch_startpile:form.startCode[0],
-            branch_endpile:form.endCode[0],
-            unitengineer_unit_id:form.unitProject,
-            branch_name:form.fenbuProName,
-          })
-      API.addBranch(tmpArr).then(res=>{
+       let tmpArr = {
+        branchtype_name:form.branchtype_name,
+       };
+      API.addBranchType(tmpArr).then(res=>{
         console.log(res);
       }).then(()=>{
         this.formData = {
-        unitProject: '',
-        fenbuProName: [],
-        startCode: [],
-        endCode: []
+          branchtype_name: '',
       }
       this.codeTableData = [{}]
-      this.getModuleType();
-      }).catch((err)=>{
-        console.log(err);
-        
-      })
-    },
-    submitSheet() {
-      let form = this.formData
-       let tmpArr = [];
-      for(var fbName of form.fenbuProName){
-        for(var idx in form.endCode){
-          tmpArr.push({
-            branch_startpile:form.startCode[idx],
-            branch_endpile:form.endCode[idx],
-            unitengineer_unit_id:form.unitProject,
-            branch_name:fbName,
-          })
-        }
-      }
-      API.addBranch(tmpArr).then(res=>{
-        console.log(res);
-      }).then(()=>{
-        this.formData = {
-        unitProject: '',
-        fenbuProName: [],
-        startCode: [],
-        endCode: []
-      }
-      this.codeTableData = [{}]
-      this.getModuleType();
+      this.getBranchType();
       }).catch((err)=>{
         console.log(err);
         
@@ -319,31 +180,17 @@ export default {
     handleSelectionChange(val) {
       this.multipleSelection = []
       val.forEach((element) => {
-        return this.multipleSelection.push(element.id)
+        return this.multipleSelection.push(element.branchtype_id)
       })
     }
   },
-  directives: {
-    focusNext: {
-      bind(el, binding) {
-        const delay = binding.value.delay || 0
-        setTimeout(() => {
-          el.focus()
-        }, delay)
-      }
-    }
-  },
   mounted(){
-    // this.getModuleTypeType();
-    this.getModuleType();
-    // this.getUnit();
+    this.getBranchType();
+
 
   }
 }
 </script>
 <style>
-.tableContent{
-  height: 75%;
-  overflow-y: scroll;
-}
+
 </style>

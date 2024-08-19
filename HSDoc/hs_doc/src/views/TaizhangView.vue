@@ -148,10 +148,10 @@ export default {
       console.log('row::::', row)
     },
     deleteTableList() {
-      this.$confirm('确认删除？')
+      this.$confirm('确认删除？此操作将忽略存在分部工程实例的单位工程。')
         .then((_) => {
           API.deleteUnit(this.multipleSelection).then((res)=>{
-            console.log(res);
+            this.$message(`此次成功删除 ${res.data.affectedRows} 条`);
             this.getUnit();
           })
           
