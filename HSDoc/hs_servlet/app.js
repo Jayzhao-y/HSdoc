@@ -42,6 +42,7 @@ app.post('/unit/getList',(request, response)=>{
         }else{
             res.msg = '查询成功';
             response.json(res);
+
         }
     })
 })
