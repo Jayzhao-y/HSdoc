@@ -1,24 +1,24 @@
 
 let mysql = require('mysql')
 let modelHelper = require('./modelHelper')
-let mysqlConfig = {
-    host   : 'localhost',
-    user   : 'root',
-    password : 'zhgd123',
-    port: '3306',
-    database: 'hs_doc',
-    timezone:'utc',
-    multipleStatements:true
-}
 // let mysqlConfig = {
-//     host   : '192.168.0.110',
+//     host   : 'localhost',
 //     user   : 'root',
-//     password : '1202',
+//     password : 'zhgd123',
 //     port: '3306',
-//     database: 'data',
+//     database: 'hs_doc',
 //     timezone:'utc',
 //     multipleStatements:true
 // }
+let mysqlConfig = {
+    host   : '192.168.0.110',
+    user   : 'root',
+    password : '1202',
+    port: '3306',
+    database: 'data',
+    timezone:'utc',
+    multipleStatements:true
+}
 module.exports = {
     query(sql,para){
         let connection = mysql.createConnection(mysqlConfig);

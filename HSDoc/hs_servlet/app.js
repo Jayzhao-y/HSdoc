@@ -48,11 +48,11 @@ app.post('/unit/getList',(request, response)=>{
 })
 app.post('/unit/deleteList',(request, response)=>{
     // let sql = `INSERT INTO unitengineer (unit_name,unit_startpile,unit_endpile) VALUE (?,?,?);`;
-    let sql = `DELETE FROM branchtype
-                WHERE branchtype_id IN (?)
+    let sql = `DELETE FROM unitengineer
+                WHERE unit_id IN (?)
                 AND NOT EXISTS (
                     SELECT 1 FROM branchengineer
-                    WHERE branchtype.branchtype_id = branchengineer.branch_name
+                    WHERE branchengineer.unitengineer_unit_id = unitengineer.unit_id
                 );`;
     let param = [request.body];
     mysqlHelper.query(sql,param).then(res=>{
@@ -106,7 +106,7 @@ app.post('/branch/getList',(request, response)=>{
                 temp_branch ON branchengineer.branch_id = temp_branch.branch_id
             JOIN 
                 unitengineer ON branchengineer.unitengineer_unit_id = unitengineer.unit_id
-            ORDER BY branchengineer.unitengineer_unit_id,branchengineer.branch_name ASC;`;
+            ORDER BY branchengineer.unitengineer_unit_id ASC,branchengineer.branch_name ASC;`;
     let param = request.body;
     mysqlHelper.query(sql,param).then(res=>{
         if(!res.success){
