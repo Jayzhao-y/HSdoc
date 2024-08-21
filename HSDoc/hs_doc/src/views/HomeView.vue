@@ -65,7 +65,7 @@
               src="https://placehold.co/24x24?text=📊"
               class="mr-3"
             />
-            <span class="text-primary-foreground" @click="getRouterList(5)">分布管理</span>
+            <span class="text-primary-foreground" @click="getRouterList(5)">分部管理</span>
           </li>
         </ul>
       </div>

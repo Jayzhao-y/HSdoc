@@ -18,7 +18,7 @@
               ></path>
             </svg>
           </button>
-          <h2 class="text-2xl font-bold text-center mb-4">新增单位工程</h2>
+          <h2 class="text-2xl font-bold text-center mb-4">新增分部工程</h2>
           <div class="space-y-4">
             <div class="flex flex-col">
               <label for="project" class="block text-card-foreground">单位工程:</label>

@@ -18,7 +18,7 @@
               ></path>
             </svg>
           </button>
-          <h2 class="text-2xl font-bold text-center mb-4">新增单位工程</h2>
+          <h2 class="text-2xl font-bold text-center mb-4">新增单元工程</h2>
           <div class="space-y-4">
             <div class="flex flex-col">
               <label for="project" class="block text-card-foreground">分部工程:</label>
@@ -74,7 +74,7 @@
               </el-select>
             </div>
             <div class="flex flex-col">
-              <label for="start-number" class="block text-card-foreground">施工编号</label>
+              <!-- <label for="start-number" class="block text-card-foreground">施工编号</label>
                   <input
                     type="text"
                     id="start-number"
@@ -82,7 +82,7 @@
                     :placeholder="placeholder"
                     :class="styleSheet.inputMini"
                     v-model="formData.constructCode"
-                  />
+                  /> -->
             </div>
             <div class="flex flex-col">
               <div class="grid grid-cols-2 gap-4">
@@ -475,7 +475,7 @@ export default {
         let form = res.data[1];
         for(var key of form){
             arr.push({
-            label: key.branchtype_name,
+            label: key.unit_name +"-"+key.branchtype_name,
             value: key.branch_id
           })
         }
